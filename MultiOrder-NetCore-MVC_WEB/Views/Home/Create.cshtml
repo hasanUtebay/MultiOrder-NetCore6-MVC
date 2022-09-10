@@ -1,0 +1,182 @@
+﻿@using MultiOrder_NetCore_MVC_WEB.Models.DTOs
+@model CreateOrderDTO
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    <div asp-validation-summary="All"></div>
+    <div class="card-body">
+
+        <div class="border border-success border-3 rounded rounded-3 p-3">
+            <!-- Company Name -->
+            <div class="form-group">
+                <label asp-for="CompanyName" class="fw-bold mb-2">Company Name</label>
+                <input asp-for="CompanyName" type="text" class="form-control">
+            </div>
+            <!-- Order Date -->
+            <div class="form-group mt-2 mb-2">
+                <label asp-for="OrderDate" class="fw-bold mb-2">Order Date</label>
+                <input asp-for="OrderDate" type="date" class="form-control" value="@ViewBag.DateTimeNow">
+            </div>
+
+        </div>
+
+        <!--Add New Order-->
+        <div class="border border-warning border-3 rounded rounded-3 p-3 mt-2">
+            <table class="table mt-2" style="height: 100px;">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Item</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Unit Price</th>
+                        <th scope="col">Operation</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr>
+                        <th id="orderTurn" class="align-middle">New Order</th>
+                        <td class="align-middle"><input id="txtOrderName" type="text" /></td>
+                        <td class="align-middle"><input id="txtOrderQuantity" type="number" min="0" value="0" /></td>
+                        <td class="align-middle"><input id="txtOrderPrice" type="number" min="0" value="0" /></td>
+                        <td class="align-middle"><input type="button" id="btnAddOrder" class="btn btn-primary"
+                                value="Add Order" /></td>
+
+
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+        <!--Order List-->
+        <div>
+            <table class="table table-striped mt-2">
+                <thead>
+                    <tr>
+                        <th scope="col" class="text-center">#</th>
+                        <th scope="col">Item</th>
+                        <th scope="col" class="text-center">Quantity</th>
+                        <th scope="col" class="text-center">Unit Price</th>
+                        <th scope="col" class="text-center">Total Price</th>
+                        <th scope="col" class="text-center">Operation</th>
+                    </tr>
+                </thead>
+                <tbody id="orderListBody">
+                </tbody>
+            </table>
+        </div>
+
+
+        <script>
+
+            isUpdate = false;
+            const orderListBody = document.querySelector("#orderListBody");
+            const btnAddOrder = document.querySelector("#btnAddOrder");
+            const txtOrderName = document.querySelector("#txtOrderName");
+            const txtOrderQuantity = document.querySelector("#txtOrderQuantity");
+            const txtOrderPrice = document.querySelector("#txtOrderPrice");
+            const btnUpdate = document.querySelector("#btnUpdate");
+            const orderTurn = document.querySelector("#orderTurn");
+
+            var isUpdate = false;
+            var i = 0;
+            var j = 0;
+
+            function ClearAll() {
+                txtOrderName.value = "";
+                txtOrderPrice.value = 0;
+                txtOrderQuantity.value = 0;
+            };
+
+            function AddNewOrder() {
+                if (txtOrderName.value == null || txtOrderPrice.value <= 0 || txtOrderQuantity <= 0) {
+                    alert("Gerekli alanlar boş geçilemez");
+                }
+                else {
+                    if (isUpdate == false) {
+                        let totalPrice = txtOrderPrice.value * txtOrderQuantity.value;
+                        let newRow = `<tr id="${i}tr">
+                <th scope="row" id="${i}" class="text-center align-middle">${i + 1}</th>
+                <td class="align-middle" id="${i}1">${txtOrderName.value}</td>
+                <input id="${i}" name="Orders[${i}].ProductionName" type="hidden" value="${txtOrderName.value}" />
+                <td class="align-middle text-center" id="${i}2" >${txtOrderQuantity.value}</td>
+                <input id="${i}" name="Orders[${i}].Quantity" type="hidden" value="${txtOrderQuantity.value}" />
+                <td class="align-middle text-center" id="${i}3" >${txtOrderPrice.value}</td>
+                <input id="${i}" name="Orders[${i}].UnitPrice" type="hidden" value="${txtOrderPrice.value}" />
+                <td class="align-middle text-center" id="${i}4" >${totalPrice}</td>                            
+                <td class="align-middle text-center" ><input onclick='ActiveUpdate(${i})' type="button" class="btn btn-warning" value="Update" /> <input onclick='DeleteItem(${i})' type="button" class="btn btn-danger" value="Delete" /> </td>                            
+            </tr>`;
+
+                        orderListBody.insertAdjacentHTML("afterbegin", newRow);
+
+                        console.log(i);
+                        console.log(txtOrderName.value);
+                        console.log(txtOrderQuantity.value);
+                        console.log(txtOrderPrice.value);
+
+                        i = i + 1;
+                        ClearAll();
+                    }
+                    if (isUpdate == true) {
+
+                        j = orderTurn.innerHTML - 1;
+                        let totalPrice = txtOrderPrice.value * txtOrderQuantity.value;
+
+                        let updatedRow = `
+                    <th scope="row" id="${j}" class="text-center align-middle">${j + 1}</th>
+                    <td class="align-middle" id="${j}1">${txtOrderName.value}</td>
+                    <input id="${j}" name="Orders[${j}].ProductionName" type="hidden" value="${txtOrderName.value}" />
+                    <td class="align-middle text-center" id="${j}2" >${txtOrderQuantity.value}</td>
+                    <input id="${j}" name="Orders[${j}].Quantity" type="hidden" value="${txtOrderQuantity.value}" />
+                    <td class="align-middle text-center" id="${j}3" >${txtOrderPrice.value}</td>
+                    <input id="${j}" name="Orders[${j}].UnitPrice" type="hidden" value="${txtOrderPrice.value}" />
+                    <td class="align-middle text-center" id="${j}4" >${totalPrice}</td>                            
+                    <td class="align-middle text-center" ><input onclick='ActiveUpdate(${i})' type="button" class="btn btn-warning" value="Update" />
+                        <input onclick='DeleteItem(${i})' type="button" class="btn btn-danger" value="Delete" />
+                        </td>`;
+
+                        document.getElementById(`${j}tr`).innerHTML = updatedRow;
+                        ClearAll();
+                        btnAddOrder.value = "Add Order";
+                        orderTurn.innerHTML = "New Item";
+                        isUpdate = false;
+                    }
+
+                }
+
+            };
+
+            function ActiveUpdate(orderID) {
+
+                console.log(document.getElementById(`${orderID}1`).innerHTML);
+                orderTurn.innerHTML = orderID + 1;
+                txtOrderName.value = document.getElementById(`${orderID}1`).innerHTML;
+                txtOrderQuantity.value = document.getElementById(`${orderID}2`).innerHTML;
+                txtOrderPrice.value = document.getElementById(`${orderID}3`).innerHTML;
+                btnAddOrder.value = "Update";
+                isUpdate = true;
+
+            }
+
+            function DeleteItem(orderID) {
+                document.getElementById(`${j}tr`).remove();
+                ClearAll();
+                btnAddOrder.value = "Add Order";
+                orderTurn.innerHTML = "New Item";
+                isUpdate = false;
+
+            }
+
+            btnAddOrder.addEventListener("click", AddNewOrder);
+
+
+
+        </script>
+
+    </div>
+
+    <div class="card-footer">
+        <button type="submit" class="btn btn-primary mt-2">Create Orders</button>
+    </div>
+</form>
+
+
